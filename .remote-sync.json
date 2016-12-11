@@ -1,0 +1,15 @@
+{
+  "uploadOnSave": true,
+  "useAtomicWrites": false,
+  "deleteLocal": false,
+  "hostname": "colossus.it.mtu.edu",
+  "target": "CS4121/Project 4/",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "cfbrevit",
+  "password": "Verlander94!",
+  "watch": [],
+  "transport": "scp"
+}

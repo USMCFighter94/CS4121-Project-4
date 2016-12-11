@@ -1,0 +1,12 @@
+int a;
+
+int t()
+{
+  write("inside functions");
+  return 10;
+}
+
+int main()
+{
+  write(a);
+}
