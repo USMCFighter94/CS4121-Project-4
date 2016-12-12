@@ -101,6 +101,7 @@ return				{ return RETURN; }
                                   }
 
                                   Cminus_lval = SymIndex(symtab, ssave(name));
+                                  printf("Name == %s\n", name);
                                   free(name);
                                   return IDENTIFIER; }
 [0-9]+				{ Cminus_lval = atoi(Cminus_text); return INTCON; }

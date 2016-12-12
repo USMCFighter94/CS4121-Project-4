@@ -174,6 +174,7 @@ IdentifierList 	: VarDecl
 
 VarDecl 	: IDENTIFIER
 		{
+      //printf("Hey, does this work? The string is %s\n", Cminus_text);
       setValue($1, g_GP_NEXT_OFFSET);
       g_GP_NEXT_OFFSET += 4; // next slot for a 4B value.
 		}
