@@ -40,6 +40,7 @@ long getValue(int);
 int setValue(int, long);
 extern SymTable symtab;
 extern bool inFunction;
+extern char* varName;
 %}
 
 %option bison-bridge
@@ -92,17 +93,17 @@ return				{ return RETURN; }
 				//Cminus_lval = SymIndex(symtab, substr(Cminus_text, 1, Cminus_leng-2));
                                   return STRING; }
 [a-zA-Z]([a-zA-Z]|[0-9])*	{
-                                  int length = strlen(Cminus_text);
-                                  char* name = malloc((length+6) * sizeof(char));
-                                  strcpy(name, Cminus_text);
-
-                                  if (inFunction) {
-                                    strcat(name, "Local");
-                                  }
-
-                                  Cminus_lval = SymIndex(symtab, ssave(name));
-                                  printf("Name == %s\n", name);
-                                  free(name);
+                                  //char *name = (char *) malloc(7 * sizeof(char));
+                                  //strcpy(name, Cminus_text);
+                                  //if (inFunction) {
+                                    //strcat(name, "Local");
+                                  //}
+                                  strcpy(varName, Cminus_text);
+                                  //Cminus_lval = SymIndex(symtab, ssave(name));
+                                  //if (inFunction) {
+                                    //setValue(Cminus_lval, g_GP_NEXT_OFFSET);
+                                  //}
+                                  //free(name);
                                   return IDENTIFIER; }
 [0-9]+				{ Cminus_lval = atoi(Cminus_text); return INTCON; }
 {WS}				{ ; }

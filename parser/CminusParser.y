@@ -25,7 +25,7 @@ EXTERN(void,Cminus_error,(const char*));
 
 EXTERN(int,Cminus_lex,(void));
 
-char *fileName;
+char *fileName, *varName;
 
 SymTable symtab, localSymTable;
 
@@ -130,8 +130,9 @@ ProcedureHead : FunctionDecl DeclList
 FunctionDecl :  Type IDENTIFIER LPAREN RPAREN LBRACE
 		{
 			//printf("<FunctionDecl> ->  <Type> <IDENTIFIER> <LP> <RP> <LBR>\n");
-      char* funcName = SymGetFieldByIndex(symtab, $2, SYM_NAME_FIELD);
-      if (strcmp(funcName, "main") != 0)
+      SymIndex(symtab, ssave(varName));
+      /*char* funcName = SymGetFieldByIndex(symtab, $2, SYM_NAME_FIELD);*/
+      if (strcmp(varName, "main") != 0)
         inFunction = true;
 
       if (firstFunction == true) {
@@ -139,7 +140,7 @@ FunctionDecl :  Type IDENTIFIER LPAREN RPAREN LBRACE
         printf("j main1\n");
       }
 
-      issueFunctionEnter(funcName);
+      issueFunctionEnter(varName);
 		}
 	      	;
 
@@ -174,13 +175,21 @@ IdentifierList 	: VarDecl
 
 VarDecl 	: IDENTIFIER
 		{
-      //printf("Hey, does this work? The string is %s\n", Cminus_text);
-      setValue($1, g_GP_NEXT_OFFSET);
+      /*int index;
+      if (inFunction) {
+        strcat(varName, "Local");
+        index = SymIndex(symtab, ssave(varName));
+      } else {
+        index = $1;
+      }*/
+      if (inFunction)
+        strcat(varName, "Local");
+      int index = SymIndex(symtab, ssave(varName));
+      setValue(index, g_GP_NEXT_OFFSET);
       g_GP_NEXT_OFFSET += 4; // next slot for a 4B value.
 		}
 		| IDENTIFIER LBRACKET INTCON RBRACKET
     {
-      setValue($1, g_GP_NEXT_OFFSET);
   		g_GP_NEXT_OFFSET += (4*$3); // next slot for a 4B value.
 		}
 		;
@@ -514,7 +523,11 @@ Variable        : IDENTIFIER
 			// $1 == index of symbol in symtable
 			reg_idx_t reg    = reg_alloc();
 
-			long      offset = getValue($1); // load base offset
+      if (inFunction)
+        strcat(varName, "Local");
+
+      int index = SymIndex(symtab, ssave(varName));
+			long      offset = getValue(index); // load base offset
 
 			ISSUE_ADDI(reg, GP, offset);
 			$$ = reg;
@@ -587,6 +600,10 @@ static void initialize(char* inputFileName) {
 
 	 symtab = SymInit(SYMTABLE_SIZE);
 	 SymInitField(symtab,SYMTAB_VALUE_FIELD,(Generic)-1,NULL);
+
+   /*localSymTable*/
+
+   varName = (char *) malloc(7 * sizeof(char));
 }
 
 static void finalize() {
@@ -594,6 +611,7 @@ static void finalize() {
     SymKill(symtab);
     fclose(Cminus_in);
     fclose(stdout);
+    free(varName);
 }
 
 int main(int argc, char** argv)
