@@ -21,6 +21,7 @@ t:
 	add $t4, $t2, $t3
 	add $v0, $0, $t4
 	jr $ra
+
 main1:
 	addi $t5, $gp, 0
 	jal t

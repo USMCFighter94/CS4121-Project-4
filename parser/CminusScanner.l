@@ -38,7 +38,7 @@ WS	[ \t]
 
 long getValue(int);
 int setValue(int, long);
-extern SymTable symtab, localSymTable;
+extern SymTable symtab;
 extern bool inFunction;
 %}
 
@@ -92,13 +92,16 @@ return				{ return RETURN; }
 				//Cminus_lval = SymIndex(symtab, substr(Cminus_text, 1, Cminus_leng-2));
                                   return STRING; }
 [a-zA-Z]([a-zA-Z]|[0-9])*	{
-                              SymTable table;
-                              printf("In Function? %d\n", inFunction);
-                              if (inFunction)
-                                table = localSymTable;
-                              else
-                                table = symtab;
-                              Cminus_lval = SymIndex(table, ssave(Cminus_text));
+                                  int length = strlen(Cminus_text);
+                                  char* name = malloc((length+6) * sizeof(char));
+                                  strcpy(name, Cminus_text);
+
+                                  if (inFunction) {
+                                    strcat(name, "Local");
+                                  }
+
+                                  Cminus_lval = SymIndex(symtab, ssave(name));
+                                  free(name);
                                   return IDENTIFIER; }
 [0-9]+				{ Cminus_lval = atoi(Cminus_text); return INTCON; }
 {WS}				{ ; }

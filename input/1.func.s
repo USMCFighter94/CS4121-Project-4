@@ -15,6 +15,7 @@ t:
 	li $t0, 10
 	add $v0, $0, $t0
 	jr $ra
+
 main1:
 	addi $t1, $gp, 0
 	jal t
