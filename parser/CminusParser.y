@@ -504,8 +504,8 @@ Factor          : Variable
                 | IDENTIFIER LPAREN RPAREN
        		{
 			//printf("<Factor> -> <IDENTIFIER> <LP> <RP>\n");
-      char* name = SymGetFieldByIndex(symtab, $1, SYM_NAME_FIELD);
-      printf("\tjal %s\n", name);
+
+      printf("\tjal %s\n", varName);
 
       reg_idx_t reg = reg_alloc();
       printf("\tadd $%s, $0, $v0\n", REG_NAME(reg));
