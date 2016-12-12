@@ -23,7 +23,7 @@ WS	[ \t]
  * To hook this thing up to your parser, you will need to take the include
  * file of grammar terminals and relate them to the constants defined below.
  * You can either edit the flex spec or edit the constant defintions.  (Of
- * course, you should do that on your own copy!)  
+ * course, you should do that on your own copy!)
  *
  */
 
@@ -38,7 +38,8 @@ WS	[ \t]
 
 long getValue(int);
 int setValue(int, long);
-extern SymTable symtab;
+extern SymTable symtab, localSymTable;
+extern bool inFunction;
 %}
 
 %option bison-bridge
@@ -48,12 +49,12 @@ extern SymTable symtab;
 
 int		{ return INTEGER;}
 while		{ return WHILE;  }
-else		{ 
+else		{
 		    IS_IN_ELSE = true;            // needed when printing "tail code" of IfStatement
 		    ELSE_LBL   = g_NXT_LBL_ID++;  // label for end of else-block
 		    issue_jmp(ELSE_LBL);          // goto end of else-block
 		    print_label(IF_LBL);          // print end of if-block
-                    return ELSE; 
+                    return ELSE;
                 }
 exit				{ return EXIT; }
 if				{ return IF; }
@@ -83,19 +84,26 @@ return				{ return RETURN; }
 \*				{ return TIMES; }
 \/				{ return DIVIDE;}
 ","				{ return COMMA;}
-\"[^\"]*\"			{ 
+\"[^\"]*\"			{
 				  char str[10];
 				  sprintf(str, "__str%d", g_STRING_INDEX++);
 				  Cminus_lval = SymIndex(symtab, str);
 				  setValue(Cminus_lval, (long)substr(Cminus_text, 1, Cminus_leng-2));
 				//Cminus_lval = SymIndex(symtab, substr(Cminus_text, 1, Cminus_leng-2));
                                   return STRING; }
-[a-zA-Z]([a-zA-Z]|[0-9])*	{ Cminus_lval = SymIndex(symtab, ssave(Cminus_text)); 
+[a-zA-Z]([a-zA-Z]|[0-9])*	{
+                              SymTable table;
+                              printf("In Function? %d\n", inFunction);
+                              if (inFunction)
+                                table = localSymTable;
+                              else
+                                table = symtab;
+                              Cminus_lval = SymIndex(table, ssave(Cminus_text));
                                   return IDENTIFIER; }
 [0-9]+				{ Cminus_lval = atoi(Cminus_text); return INTCON; }
 {WS}				{ ; }
 "\n"				{ Cminus_lineno++;}
 .				{
-					fprintf(stderr, "Scanner: lexical error '%s'.\n", Cminus_text); 
+					fprintf(stderr, "Scanner: lexical error '%s'.\n", Cminus_text);
 				}
 %%

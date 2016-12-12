@@ -27,7 +27,7 @@ EXTERN(int,Cminus_lex,(void));
 
 char *fileName;
 
-SymTable symtab, localSymTab;
+SymTable symtab, localSymTable;
 
 bool inFunction = false, firstFunction = true;
 
@@ -37,6 +37,8 @@ extern FILE *Cminus_in;
 
 long getValue(int);
 int  setValue(int,long);
+long getLocalValue(int);
+int  setLocalValue(int,long);
 
 %}
 
@@ -128,6 +130,9 @@ ProcedureHead : FunctionDecl DeclList
 FunctionDecl :  Type IDENTIFIER LPAREN RPAREN LBRACE
 		{
 			//printf("<FunctionDecl> ->  <Type> <IDENTIFIER> <LP> <RP> <LBR>\n");
+
+      inFunction = true;
+
       if (firstFunction == true) {
         firstFunction = false;
         printf("j main1\n");
@@ -169,13 +174,24 @@ IdentifierList 	: VarDecl
 
 VarDecl 	: IDENTIFIER
 		{
-      setValue($1, g_GP_NEXT_OFFSET);
-			g_GP_NEXT_OFFSET += 4; // next slot for a 4B value.
+      if (inFunction) {
+        /*int exists = SymFieldExists(localSymTable, $1);*/
+        printf("Does it exist in local table? %d\n", $1);
+        setLocalValue($1, g_GP_NEXT_OFFSET);
+      } else {
+        setValue($1, g_GP_NEXT_OFFSET);
+      }
+      g_GP_NEXT_OFFSET += 4; // next slot for a 4B value.
 		}
 		| IDENTIFIER LBRACKET INTCON RBRACKET
     {
-      setValue($1, g_GP_NEXT_OFFSET);
-			g_GP_NEXT_OFFSET += (4*$3); // next slot for a 4B value.
+      if (inFunction) {
+        setLocalValue($1, g_GP_NEXT_OFFSET_LOCAL);
+        g_GP_NEXT_OFFSET_LOCAL += (4*$3);
+      } else {
+        setValue($1, g_GP_NEXT_OFFSET);
+  			g_GP_NEXT_OFFSET += (4*$3); // next slot for a 4B value.
+      }
 		}
 		;
 
@@ -319,6 +335,7 @@ IOStatement     : READ LPAREN Variable RPAREN SEMICOLON
 ReturnStatement : RETURN Expr SEMICOLON
 		{
 			//printf("<ReturnStatement> -> <RETURN> <Expr> <SC>\n");
+      inFunction = false;
       issueFunctionExit($2);
 		}
                 ;
@@ -507,7 +524,15 @@ Variable        : IDENTIFIER
 			// $1 == index of symbol in symtable
 			reg_idx_t reg    = reg_alloc();
 
-			long      offset = getValue($1);
+			long      offset;
+      if (inFunction) {
+        offset = getLocalValue($1); // load base offset
+        /*printf("Offset === %d\n", offset);*/
+        if (offset == -1)
+          offset = getValue($1);
+      } else {
+        offset = getValue($1); // load base offset
+      }
 
 			ISSUE_ADDI(reg, GP, offset);
 			$$ = reg;
@@ -581,11 +606,15 @@ static void initialize(char* inputFileName) {
 	 symtab = SymInit(SYMTABLE_SIZE);
 	 SymInitField(symtab,SYMTAB_VALUE_FIELD,(Generic)-1,NULL);
 
+   localSymTable = SymInit(SYMTABLE_SIZE);
+   SymInitField(localSymTable, SYMTAB_VALUE_FIELD, (Generic) -1, NULL);
 }
 
 static void finalize() {
     SymKillField(symtab,SYMTAB_VALUE_FIELD);
     SymKill(symtab);
+    SymKillField(localSymTable, SYMTAB_VALUE_FIELD);
+    SymKill(localSymTable);
     fclose(Cminus_in);
     fclose(stdout);
 }
@@ -620,5 +649,13 @@ long getValue(int index)
 int setValue(int index, long value)
 {
   SymPutFieldByIndex(symtab, index, SYMTAB_VALUE_FIELD, (Generic)value);
+}
+
+long getLocalValue(int index) {
+  return (long) SymGetFieldByIndex(localSymTable, index, SYMTAB_VALUE_FIELD);
+}
+
+int setLocalValue(int index, long value) {
+  SymPutFieldByIndex(localSymTable, index, SYMTAB_VALUE_FIELD, (Generic) value);
 }
 /******************END OF C ROUTINES**********************/

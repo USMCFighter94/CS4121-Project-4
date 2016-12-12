@@ -60,7 +60,7 @@ typedef struct register_file_s {
 
 extern register_file_t	g_RF;
 extern long 		g_GP_NEXT_OFFSET;
-extern long			g_GP_NEXT_OFFSET_LOCAL;
+extern long 		g_GP_NEXT_OFFSET_LOCAL;
 extern int              g_STRING_INDEX;
 
 void      print_prolog          ();

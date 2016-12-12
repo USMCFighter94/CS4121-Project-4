@@ -1283,7 +1283,7 @@ yyparse ()
 #endif
 #endif
 {
-  
+
   int yystate;
   int yyn;
   int yyresult;
@@ -2388,4 +2388,3 @@ int setValue(int index, long value)
   SymPutFieldByIndex(symtab, index, SYMTAB_VALUE_FIELD, (Generic)value);
 }
 /******************END OF C ROUTINES**********************/
-

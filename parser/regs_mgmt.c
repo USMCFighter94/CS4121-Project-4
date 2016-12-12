@@ -380,7 +380,6 @@ void issueFunctionEnter(char* funcName) {
 void issueFunctionExit(reg_idx_t varReg) {
 	printf("\tadd $v0, $0, $%s\n", REG_NAME(varReg));
 	printf("\tjr $ra\n\n");
-	g_GP_NEXT_OFFSET_LOCAL = 0;
 }
 
 void
