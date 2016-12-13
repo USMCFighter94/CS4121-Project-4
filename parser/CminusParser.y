@@ -131,9 +131,10 @@ FunctionDecl :  Type IDENTIFIER LPAREN RPAREN LBRACE
 		{
 			//printf("<FunctionDecl> ->  <Type> <IDENTIFIER> <LP> <RP> <LBR>\n");
       SymIndex(symtab, ssave(varName));
-      /*char* funcName = SymGetFieldByIndex(symtab, $2, SYM_NAME_FIELD);*/
-      if (strcmp(varName, "main") != 0)
-        inFunction = true;
+
+      localSymTable = SymInit(SYMTABLE_SIZE);
+      SymInitField(localSymTable, SYMTAB_VALUE_FIELD, (Generic) -1, NULL);
+      inFunction = true;
 
       if (firstFunction == true) {
         firstFunction = false;
@@ -175,21 +176,24 @@ IdentifierList 	: VarDecl
 
 VarDecl 	: IDENTIFIER
 		{
-      /*int index;
       if (inFunction) {
-        strcat(varName, "Local");
-        index = SymIndex(symtab, ssave(varName));
+        int index = SymIndex(localSymTable, ssave(varName));
+        setLocalValue(index, g_GP_NEXT_OFFSET);
       } else {
-        index = $1;
-      }*/
-      if (inFunction)
-        strcat(varName, "Local");
-      int index = SymIndex(symtab, ssave(varName));
-      setValue(index, g_GP_NEXT_OFFSET);
+        int index = SymIndex(symtab, ssave(varName));
+        setValue(index, g_GP_NEXT_OFFSET);
+      }
       g_GP_NEXT_OFFSET += 4; // next slot for a 4B value.
 		}
 		| IDENTIFIER LBRACKET INTCON RBRACKET
     {
+      if (inFunction) {
+        int index = SymIndex(localSymTable, ssave(varName));
+        setLocalValue(index, g_GP_NEXT_OFFSET);
+      } else {
+        int index = SymIndex(symtab, ssave(varName));
+        setValue(index, g_GP_NEXT_OFFSET);
+      }
   		g_GP_NEXT_OFFSET += (4*$3); // next slot for a 4B value.
 		}
 		;
@@ -335,6 +339,8 @@ ReturnStatement : RETURN Expr SEMICOLON
 		{
 			//printf("<ReturnStatement> -> <RETURN> <Expr> <SC>\n");
       inFunction = false;
+      SymKillField(localSymTable, SYMTAB_VALUE_FIELD);
+      SymKill(localSymTable);
       issueFunctionExit($2);
 		}
                 ;
@@ -523,11 +529,21 @@ Variable        : IDENTIFIER
 			// $1 == index of symbol in symtable
 			reg_idx_t reg    = reg_alloc();
 
-      if (inFunction)
-        strcat(varName, "Local");
+      int index;
+      long offset;
+      if (inFunction) { // Look in local table first
+        index = SymQueryIndex(localSymTable, varName);
 
-      int index = SymIndex(symtab, ssave(varName));
-			long      offset = getValue(index); // load base offset
+        if (index == -1) { // Wasn't found in local table, look in global
+          index = SymQueryIndex(symtab, varName);
+          offset = getValue(index);
+        } else { // Found in local, get value
+          offset = getLocalValue(index);
+        }
+      } else { // Not in a function, just look in global
+        index = SymQueryIndex(symtab, varName);
+        offset = getValue(index);
+      }
 
 			ISSUE_ADDI(reg, GP, offset);
 			$$ = reg;
@@ -601,14 +617,14 @@ static void initialize(char* inputFileName) {
 	 symtab = SymInit(SYMTABLE_SIZE);
 	 SymInitField(symtab,SYMTAB_VALUE_FIELD,(Generic)-1,NULL);
 
-   /*localSymTable*/
-
    varName = (char *) malloc(7 * sizeof(char));
 }
 
 static void finalize() {
     SymKillField(symtab,SYMTAB_VALUE_FIELD);
     SymKill(symtab);
+    SymKillField(localSymTable, SYMTAB_VALUE_FIELD);
+    SymKill(localSymTable);
     fclose(Cminus_in);
     fclose(stdout);
     free(varName);
@@ -644,5 +660,13 @@ long getValue(int index)
 int setValue(int index, long value)
 {
   SymPutFieldByIndex(symtab, index, SYMTAB_VALUE_FIELD, (Generic)value);
+}
+
+long getLocalValue(int index) {
+  return (long) SymGetFieldByIndex(localSymTable, index, SYMTAB_VALUE_FIELD);
+}
+
+int setLocalValue(int index, long value) {
+  SymPutFieldByIndex(localSymTable, index, SYMTAB_VALUE_FIELD, (Generic) value);
 }
 /******************END OF C ROUTINES**********************/

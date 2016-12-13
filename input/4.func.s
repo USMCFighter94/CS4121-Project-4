@@ -5,7 +5,7 @@
 main: nop
 j main1
 t:
-	addi $t0, $gp, -1
+	addi $t0, $gp, 4
 	li $t1, 5
 	sw $t1, 0($t0)
 	addi $t1, $gp, 8
@@ -21,7 +21,7 @@ t:
 	syscall
 	addi $t3, $gp, 8
 	lw $t4, 0($t3)
-	addi $t5, $gp, -1
+	addi $t5, $gp, 4
 	lw $t6, 0($t5)
 	add $t7, $t4, $t6
 	add $v0, $0, $t7
