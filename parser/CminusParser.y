@@ -556,7 +556,21 @@ Variable        : IDENTIFIER
 				  r2	 = reg_alloc();
 			// load offset and add sizeof(int) * idx value
 
-			long      offset = getValue($1); // load base offset
+      int index;
+      long offset;
+      if (inFunction) { // Look in local table first
+        index = SymQueryIndex(localSymTable, varName);
+
+        if (index == -1) { // Wasn't found in local table, look in global
+          index = SymQueryIndex(symtab, varName);
+          offset = getValue(index);
+        } else { // Found in local, get value
+          offset = getLocalValue(index);
+        }
+      } else { // Not in a function, just look in global
+        index = SymQueryIndex(symtab, varName);
+        offset = getValue(index);
+      }
 
 			ISSUE_ADDI(reg, GP, offset);	 // base + offset
 			issue_li(r2, 4);
