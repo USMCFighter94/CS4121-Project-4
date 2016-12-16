@@ -369,9 +369,6 @@ issue_jmp(long label_id)
 }
 
 void issueFunctionEnter(char* funcName) {
-	if (strcmp(funcName, "main") == 0)
-		printf("%s1:\n", funcName);
-	else
 		printf("%s:\n", funcName);
 	// printf("\taddi $sp, $sp, -4\n");
 	// printf("\tsw $t0, 0($sp)\n");
@@ -409,7 +406,7 @@ print_prolog()
 	puts(".newline: .asciiz \"\\n\"");
 	puts(".text");
 	puts(".globl main");
-	puts("main: nop");
+	puts("j main\n");
 }
 
 void

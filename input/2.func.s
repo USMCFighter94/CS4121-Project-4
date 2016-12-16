@@ -2,8 +2,8 @@
 .newline: .asciiz "\n"
 .text
 .globl main
-main: nop
-j main1
+j main
+
 t:
 	la $t0, __str0
 	move $a0, $t0
@@ -22,7 +22,7 @@ t:
 	add $v0, $0, $t4
 	jr $ra
 
-main1:
+main:
 	addi $t5, $gp, 0
 	jal t
 	add $t6, $0, $v0

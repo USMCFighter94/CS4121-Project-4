@@ -29,7 +29,7 @@ char *fileName, *varName;
 
 SymTable symtab, localSymTable;
 
-bool inFunction = false, firstFunction = true;
+bool inFunction = false;
 
 extern int Cminus_lineno;
 
@@ -135,11 +135,6 @@ FunctionDecl :  Type IDENTIFIER LPAREN RPAREN LBRACE
       localSymTable = SymInit(SYMTABLE_SIZE);
       SymInitField(localSymTable, SYMTAB_VALUE_FIELD, (Generic) -1, NULL);
       inFunction = true;
-
-      if (firstFunction == true) {
-        firstFunction = false;
-        printf("j main1\n");
-      }
 
       issueFunctionEnter(varName);
 		}
