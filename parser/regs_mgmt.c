@@ -368,32 +368,29 @@ issue_jmp(long label_id)
         LEN_TOP += snprintf(BUF_TOP+LEN_TOP, BUFFER_SZ-LEN_TOP, "\tj .L%ld\n", label_id);
 }
 
-void issueFunctionEnter(char* funcName) {
-		printf("%s:\n", funcName);
-	// printf("\taddi $sp, $sp, -4\n");
-	// printf("\tsw $t0, 0($sp)\n");
-}
-
 void saveRegs(char* varName) {
 	int numRegs = 0, j, k;
 	reg_idx_t i;
 	char* usedRegs[32];
 
+	// Get all registers that are in use
 	for (i = INVALID + 1; i < N_MIPS_REGS; i++) {
 		if (REG_FREE(i))
 			usedRegs[numRegs++] = REG_NAME(i);
 	}
-	printf("\tsubu $sp, $sp, %d\n", numRegs * 4);
+	printf("\tsubu $sp, $sp, %d\n", numRegs * 4); // Allocate space on stack pointer
 
+	// Loop through and store all registers that are currently in use
 	for (j = 0; j < numRegs - 1; j++)
 		printf("\tsw $%s, %d($sp)\n", usedRegs[j], j * 4);
-	printf("\tsw $ra, %d($sp)\n", (numRegs - 1) * 4);
-	printf("\tjal %s\n", varName);
+	printf("\tsw $ra, %d($sp)\n", (numRegs - 1) * 4); // Store Return Address
+	printf("\tjal %s\n", varName); // Jump to next function
 
+	// Loop through and restore all registers than were in use
 	for (k = 0; k < numRegs - 1; k++)
 		printf("\tlw $%s, %d($sp)\n", usedRegs[k], k * (4));
-	printf("\tlw $ra, %d($sp)\n", (numRegs - 1) * 4);
-	printf("\taddu $sp, $sp, %d\n", numRegs * 4);
+	printf("\tlw $ra, %d($sp)\n", (numRegs - 1) * 4); // Restore orginal Return Address
+	printf("\taddu $sp, $sp, %d\n", numRegs * 4); // Restore stack pointer
 }
 
 void issueFunctionExit(reg_idx_t varReg) {

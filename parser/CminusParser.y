@@ -135,8 +135,7 @@ FunctionDecl :  Type IDENTIFIER LPAREN RPAREN LBRACE
       localSymTable = SymInit(SYMTABLE_SIZE);
       SymInitField(localSymTable, SYMTAB_VALUE_FIELD, (Generic) -1, NULL);
       inFunction = true;
-
-      issueFunctionEnter(varName);
+      printf("%s:\n", varName);
 		}
 	      	;
 
@@ -171,22 +170,24 @@ IdentifierList 	: VarDecl
 
 VarDecl 	: IDENTIFIER
 		{
+      int index;
       if (inFunction) {
-        int index = SymIndex(localSymTable, ssave(varName));
+        index = SymIndex(localSymTable, ssave(varName));
         setLocalValue(index, g_GP_NEXT_OFFSET);
       } else {
-        int index = SymIndex(symtab, ssave(varName));
+        index = SymIndex(symtab, ssave(varName));
         setValue(index, g_GP_NEXT_OFFSET);
       }
       g_GP_NEXT_OFFSET += 4; // next slot for a 4B value.
 		}
 		| IDENTIFIER LBRACKET INTCON RBRACKET
     {
+      int index;
       if (inFunction) {
-        int index = SymIndex(localSymTable, ssave(varName));
+        index = SymIndex(localSymTable, ssave(varName));
         setLocalValue(index, g_GP_NEXT_OFFSET);
       } else {
-        int index = SymIndex(symtab, ssave(varName));
+        index = SymIndex(symtab, ssave(varName));
         setValue(index, g_GP_NEXT_OFFSET);
       }
   		g_GP_NEXT_OFFSET += (4*$3); // next slot for a 4B value.
@@ -532,9 +533,8 @@ Variable        : IDENTIFIER
         if (index == -1) { // Wasn't found in local table, look in global
           index = SymQueryIndex(symtab, varName);
           offset = getValue(index);
-        } else { // Found in local, get value
+        } else // Found in local, get value
           offset = getLocalValue(index);
-        }
       } else { // Not in a function, just look in global
         index = SymQueryIndex(symtab, varName);
         offset = getValue(index);
@@ -559,9 +559,8 @@ Variable        : IDENTIFIER
         if (index == -1) { // Wasn't found in local table, look in global
           index = SymQueryIndex(symtab, varName);
           offset = getValue(index);
-        } else { // Found in local, get value
+        } else // Found in local, get value
           offset = getLocalValue(index);
-        }
       } else { // Not in a function, just look in global
         index = SymQueryIndex(symtab, varName);
         offset = getValue(index);
