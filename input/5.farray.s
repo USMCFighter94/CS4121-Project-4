@@ -5,33 +5,41 @@
 j main
 
 t:
-	addi $t0, $gp, 4
-	li $t1, 5
-	sw $t1, 0($t0)
-	addi $t1, $gp, 8
-	li $t2, 2
-	sw $t2, 0($t1)
+	li $t0, 3
+	addi $t1, $gp, 12
+	li $t2, 4
+	mul $t0, $t0, $t2
+	add $t0, $t0, $t1
+	li $t2, 5
+	sw $t2, 0($t0)
 	addi $t2, $gp, 8
-	lw $t3, 0($t2)
-	move $a0, $t3
+	li $t3, 2
+	sw $t3, 0($t2)
+	addi $t3, $gp, 8
+	lw $t4, 0($t3)
+	move $a0, $t4
 	li $v0, 1
 	syscall
 	la $a0, .newline
 	li $v0, 4
 	syscall
-	addi $t3, $gp, 8
-	lw $t4, 0($t3)
-	addi $t5, $gp, 4
-	lw $t6, 0($t5)
-	add $t7, $t4, $t6
-	add $v0, $0, $t7
+	addi $t4, $gp, 8
+	lw $t5, 0($t4)
+	li $t6, 3
+	addi $t7, $gp, 12
+	li $s0, 4
+	mul $t6, $t6, $s0
+	add $t6, $t6, $t7
+	lw $s0, 0($t6)
+	add $s1, $t5, $s0
+	add $v0, $0, $s1
 	jr $ra
 
 main:
-	addi $s0, $gp, 0
-	li $s1, 1
-	sw $s1, 0($s0)
-	addi $s1, $gp, 4
+	addi $s2, $gp, 0
+	li $s3, 1
+	sw $s3, 0($s2)
+	addi $s3, $gp, 4
 	subu $sp, $sp, 64
 	sw $t0, 0($sp)
 	sw $t1, 4($sp)
@@ -40,9 +48,9 @@ main:
 	sw $t4, 16($sp)
 	sw $t5, 20($sp)
 	sw $t6, 24($sp)
-	sw $s0, 28($sp)
-	sw $s2, 32($sp)
-	sw $s3, 36($sp)
+	sw $t7, 28($sp)
+	sw $s0, 32($sp)
+	sw $s2, 36($sp)
 	sw $s4, 40($sp)
 	sw $s5, 44($sp)
 	sw $s6, 48($sp)
@@ -57,9 +65,9 @@ main:
 	lw $t4, 16($sp)
 	lw $t5, 20($sp)
 	lw $t6, 24($sp)
-	lw $s0, 28($sp)
-	lw $s2, 32($sp)
-	lw $s3, 36($sp)
+	lw $t7, 28($sp)
+	lw $s0, 32($sp)
+	lw $s2, 36($sp)
 	lw $s4, 40($sp)
 	lw $s5, 44($sp)
 	lw $s6, 48($sp)
@@ -67,14 +75,14 @@ main:
 	lw $t8, 56($sp)
 	lw $ra, 60($sp)
 	addu $sp, $sp, 64
-	add $s2, $0, $v0
-	sw $s2, 0($s1)
-	addi $s2, $gp, 0
-	lw $s3, 0($s2)
-	addi $s4, $gp, 4
+	add $s4, $0, $v0
+	sw $s4, 0($s3)
+	addi $s4, $gp, 0
 	lw $s5, 0($s4)
-	add $s6, $s3, $s5
-	move $a0, $s6
+	addi $s6, $gp, 4
+	lw $s7, 0($s6)
+	add $t8, $s5, $s7
+	move $a0, $t8
 	li $v0, 1
 	syscall
 	la $a0, .newline

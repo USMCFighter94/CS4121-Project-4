@@ -506,7 +506,7 @@ Factor          : Variable
        		{
 			//printf("<Factor> -> <IDENTIFIER> <LP> <RP>\n");
 
-      printf("\tjal %s\n", varName);
+      saveRegs(varName);
 
       reg_idx_t reg = reg_alloc();
       printf("\tadd $%s, $0, $v0\n", REG_NAME(reg));
